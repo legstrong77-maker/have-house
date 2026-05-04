@@ -39,16 +39,8 @@ services:
         limits:
           memory: 512m
 
-  # Cloudflare Quick Tunnel — 把內部 API 用 HTTPS 暴露到外網
-  # 容器啟動後 log 會出現一行 trycloudflare.com 的 URL，那就是公網 API 入口
-  # 注意：Quick Tunnel 的 URL 每次重啟會變；穩定 URL 需自己的網域 (Named Tunnel)
+  # cloudflared 已定義於主 compose；這裡只加 NAS 限制
   cloudflared:
-    image: cloudflare/cloudflared:latest
-    container_name: havehouse-tunnel
-    restart: unless-stopped
-    command: tunnel --no-autoupdate --url http://api:8000
-    depends_on:
-      - api
     deploy:
       resources:
         limits:
