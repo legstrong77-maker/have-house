@@ -49,22 +49,23 @@ export default function HomePage() {
   return (
     <div className="home">
       {/* Hero */}
-      <section className="hero card">
+      <section className="hero">
         <div className="hero-body">
-          <h1>給仲介用的房價工具站</h1>
+          <div className="hero-kicker">REAL ESTATE TOOL · v0.1</div>
+          <h1>給仲介用的<em>房價工具站</em></h1>
           <p>
             內政部實價登錄 · 每旬同步 · 互動地圖 · 行情速查 · 撿漏雷達 · 區域動能 · 購屋試算。
             一切資料客觀呈現，幫你跟客戶講清楚。
           </p>
           <div className="hero-cta">
-            <Link to="/quote"  className="btn-primary">📊 行情速查</Link>
-            <Link to="/map"    className="btn-primary" style={{ background: "linear-gradient(180deg,#dc2626,#991b1b)", boxShadow: "0 4px 16px rgba(220,38,38,.4)" }}>🗺 互動地圖</Link>
-            <Link to="/deals"  className="btn-secondary">🎯 撿漏雷達</Link>
-            <Link to="/region" className="btn-secondary">📈 區域分析</Link>
+            <Link to="/quote"  className="btn-primary">行情速查 →</Link>
+            <Link to="/map"    className="btn-secondary">互動地圖</Link>
+            <Link to="/deals"  className="btn-secondary">撿漏雷達</Link>
+            <Link to="/region" className="btn-secondary">區域分析</Link>
           </div>
           {freshness?.last_deal_date && (
             <div className="hero-meta">
-              已收錄 <b>{totalDeals.toLocaleString()}</b> 筆買賣 · 最新成交日 <b>{freshness.last_deal_date}</b> · ETL {freshness.last_etl?.season ?? "—"}
+              收錄 <b>{totalDeals.toLocaleString()}</b> 筆 · 最新 <b>{freshness.last_deal_date}</b> · ETL <b>{freshness.last_etl?.season ?? "—"}</b>
             </div>
           )}
         </div>
