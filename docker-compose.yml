@@ -27,6 +27,9 @@ services:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-havehouse}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-havehouse}
       TZ: Asia/Taipei
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:8080}
+    # bind-mount source → 改 Python 檔 robocopy 同步後 uvicorn 自動 reload，不必 rebuild image
+    volumes:
+      - ./api/app:/app/app:ro
     depends_on:
       db:
         condition: service_healthy
@@ -60,6 +63,9 @@ services:
       RUN_ON_START: ${RUN_ON_START:-false}
     volumes:
       - etl_cache:/data
+      # bind-mount source → 改 ETL code 同步後重啟容器即套用，不必 rebuild image
+      - ./etl/etl:/app/etl:ro
+      - ./etl/etl.sh:/app/etl.sh:ro
     depends_on:
       db:
         condition: service_healthy

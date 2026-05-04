@@ -17,4 +17,5 @@ RUN pip install -r requirements.txt
 COPY app ./app
 
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# --reload-dir 限定只看 /app/app，避免 venv 等被 watch；source bind-mount 後改 code 自動套用
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/app"]
