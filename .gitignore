@@ -21,6 +21,6 @@ etl_cache/
 .vscode/
 
 # extra exclusions for public repo
-havehouse-scheduler.html
+havehouse-*.html
 *.zip
 .claude/
