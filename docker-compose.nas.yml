@@ -1,0 +1,40 @@
+# Synology NAS overrides
+# 用法：docker compose -f docker-compose.yml -f docker-compose.nas.yml up -d
+#
+# - 限制每個 container 的記憶體上限，避免吃滿 NAS
+# - Postgres 配 shared_buffers，給較高效能但仍保守
+services:
+  db:
+    shm_size: 256mb
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "work_mem=16MB"
+      - "-c"
+      - "maintenance_work_mem=128MB"
+      - "-c"
+      - "effective_cache_size=512MB"
+
+  api:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  web:
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+
+  scheduler:
+    deploy:
+      resources:
+        limits:
+          memory: 512m

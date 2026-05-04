@@ -1,0 +1,26 @@
+.env
+.env.local
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+node_modules/
+dist/
+build/
+.vite/
+*.log
+.DS_Store
+data/
+etl_cache/
+.coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.idea/
+.vscode/
+
+# extra exclusions for public repo
+havehouse-scheduler.html
+*.zip
+.claude/
