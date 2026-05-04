@@ -10,28 +10,35 @@ const wan = (n: any, d = 1) =>
 export default function HomePage() {
   const [selected, setSelected] = useState<Tx | null>(null);
   const [hotCounty, setHotCounty] = useState("a");
+  const [loadHeavy, setLoadHeavy] = useState(false);   // 預設不載重量查詢
 
   const { data: counties = [] } = useQuery({
     queryKey: ["county-summary"],
     queryFn: () => api.countySummary("sale"),
   });
 
+  // 「最新成交 6 筆」改用單一縣市 (有 index 走得很快)
   const { data: latestTx } = useQuery({
-    queryKey: ["latest-tx-home"],
+    queryKey: ["latest-tx-home", hotCounty],
     queryFn: () => api.searchTx({
+      county: hotCounty,
       deal_kind: "sale", exclude_special: true,
-      sort: "deal_date", order: "desc", limit: 12,
+      sort: "deal_date", order: "desc", limit: 6,
     }),
+    enabled: counties.length > 0,
   });
 
+  // 撿漏 / 動能：只有用戶點「載入」按鈕才查
   const { data: deals = [] } = useQuery({
     queryKey: ["home-deals"],
     queryFn: () => api.underpriced({ months: 6, threshold: 0.85, limit: 6 }),
+    enabled: loadHeavy,
   });
 
   const { data: momentum = [] } = useQuery({
     queryKey: ["home-momentum", hotCounty],
     queryFn: () => api.momentum(hotCounty, "sale"),
+    enabled: loadHeavy,
   });
 
   const { data: freshness } = useQuery({ queryKey: ["fresh-home"], queryFn: api.freshness });
@@ -105,60 +112,85 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 動能 */}
-      <section className="card">
-        <div className="section-head">
-          <h2>🔥 漲跌動能 — 近 6 月 vs. 前 6~12 月</h2>
-          <select value={hotCounty} onChange={(e) => setHotCounty(e.target.value)}
-                  style={{ width: "auto", maxWidth: 180 }}>
-            {counties.map((c: any) => <option key={c.county_code} value={c.county_code}>{c.county_name}</option>)}
-          </select>
-        </div>
-        <div className="momentum-row">
-          <div className="momentum-col">
-            <div className="momentum-h">📈 漲幅前 5</div>
-            {momentum.filter((m: any) => m.pct_change != null && m.n_now >= 10)
-              .sort((a: any, b: any) => b.pct_change - a.pct_change).slice(0, 5).map((m: any) => (
-              <div key={m.district} className="momentum-row-item">
-                <span className="badge">{m.district}</span>
-                <span className="mr-mid">{wan(m.p_now)} 萬</span>
-                <span className="mr-pct up">+{(m.pct_change * 100).toFixed(1)}%</span>
-              </div>
-            ))}
-          </div>
-          <div className="momentum-col">
-            <div className="momentum-h">📉 跌幅前 5</div>
-            {momentum.filter((m: any) => m.pct_change != null && m.n_now >= 10)
-              .sort((a: any, b: any) => a.pct_change - b.pct_change).slice(0, 5).map((m: any) => (
-              <div key={m.district} className="momentum-row-item">
-                <span className="badge">{m.district}</span>
-                <span className="mr-mid">{wan(m.p_now)} 萬</span>
-                <span className="mr-pct down">{(m.pct_change * 100).toFixed(1)}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 撿漏推薦 */}
-      {deals.length > 0 && (
-        <section className="card">
-          <div className="section-head">
-            <h2>🎯 本週撿漏雷達</h2>
-            <Link to="/deals" style={{ fontSize: 13 }}>更多 →</Link>
-          </div>
-          <TxCardGrid rows={deals as Tx[]} onSelect={setSelected} dense />
-        </section>
-      )}
-
       {/* 最新成交 */}
       <section className="card">
         <div className="section-head">
-          <h2>近期成交（全台）</h2>
-          <Link to="/browse" style={{ fontSize: 13 }}>看更多 →</Link>
+          <h2>近期成交</h2>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <select value={hotCounty} onChange={(e) => setHotCounty(e.target.value)}
+                    style={{ width: "auto", maxWidth: 140 }}>
+              {counties.map((c: any) => <option key={c.county_code} value={c.county_code}>{c.county_name}</option>)}
+            </select>
+            <Link to="/browse" style={{ fontSize: 13 }}>看更多 →</Link>
+          </div>
         </div>
         <TxCardGrid rows={(latestTx?.results as Tx[]) ?? []} onSelect={setSelected} dense />
       </section>
+
+      {/* 重量查詢 — 預設不載入，需點擊 */}
+      {!loadHeavy ? (
+        <section className="card" style={{ textAlign: "center", padding: 32 }}>
+          <h2 style={{ marginTop: 0 }}>🔥 動能 + 🎯 撿漏雷達</h2>
+          <p style={{ color: "var(--muted)", marginBottom: 16 }}>
+            這兩塊查詢較耗時 (~5–30 秒)。點下方按鈕載入。
+          </p>
+          <button onClick={() => setLoadHeavy(true)} style={{ width: "auto", padding: "10px 24px" }}>
+            ▶ 載入動能 + 撿漏
+          </button>
+        </section>
+      ) : (
+        <>
+          <section className="card">
+            <div className="section-head">
+              <h2>🔥 漲跌動能 — 近 6 月 vs. 前 6~12 月</h2>
+              <select value={hotCounty} onChange={(e) => setHotCounty(e.target.value)}
+                      style={{ width: "auto", maxWidth: 180 }}>
+                {counties.map((c: any) => <option key={c.county_code} value={c.county_code}>{c.county_name}</option>)}
+              </select>
+            </div>
+            {momentum.length === 0 ? (
+              <div className="loading">動能查詢中…（首次約 5 秒）</div>
+            ) : (
+              <div className="momentum-row">
+                <div className="momentum-col">
+                  <div className="momentum-h">📈 漲幅前 5</div>
+                  {momentum.filter((m: any) => m.pct_change != null && m.n_now >= 10)
+                    .sort((a: any, b: any) => b.pct_change - a.pct_change).slice(0, 5).map((m: any) => (
+                    <div key={m.district} className="momentum-row-item">
+                      <span className="badge">{m.district}</span>
+                      <span className="mr-mid">{wan(m.p_now)} 萬</span>
+                      <span className="mr-pct up">+{(m.pct_change * 100).toFixed(1)}%</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="momentum-col">
+                  <div className="momentum-h">📉 跌幅前 5</div>
+                  {momentum.filter((m: any) => m.pct_change != null && m.n_now >= 10)
+                    .sort((a: any, b: any) => a.pct_change - b.pct_change).slice(0, 5).map((m: any) => (
+                    <div key={m.district} className="momentum-row-item">
+                      <span className="badge">{m.district}</span>
+                      <span className="mr-mid">{wan(m.p_now)} 萬</span>
+                      <span className="mr-pct down">{(m.pct_change * 100).toFixed(1)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+
+          <section className="card">
+            <div className="section-head">
+              <h2>🎯 本週撿漏雷達</h2>
+              <Link to="/deals" style={{ fontSize: 13 }}>更多 →</Link>
+            </div>
+            {deals.length === 0 ? (
+              <div className="loading">撿漏掃描中…（首次約 30 秒）</div>
+            ) : (
+              <TxCardGrid rows={deals as Tx[]} onSelect={setSelected} dense />
+            )}
+          </section>
+        </>
+      )}
 
       {/* 功能入口 */}
       <section className="card">

@@ -216,7 +216,7 @@ def _underpriced_impl(
            WHERE deal_kind='sale' AND is_special_deal=FALSE
              AND unit_price_per_ping BETWEEN 1000 AND 5000000
              AND building_area_sqm >= 20
-             AND deal_date >= CURRENT_DATE - INTERVAL '24 months'
+             AND deal_date >= CURRENT_DATE - INTERVAL '12 months'
         GROUP BY 1,2,3
           HAVING COUNT(*) >= 10
         )
