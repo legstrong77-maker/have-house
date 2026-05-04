@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "./api";
 import { getTheme, setTheme } from "./lib/storage";
@@ -30,7 +30,16 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand">Have-House <small>台灣房價資料站</small></div>
+        <Link to="/" className="brand" aria-label="返回首頁">
+          <span className="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 11l9-8 9 8v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2z" />
+            </svg>
+          </span>
+          <span className="brand-name">Have-House</span>
+          <span className="brand-divider" aria-hidden="true" />
+          <span className="brand-tagline">台灣房價資料站</span>
+        </Link>
         <button className="ghost mobile-only nav-toggle" onClick={() => setNavOpen((v) => !v)}>☰</button>
         <nav className={`nav ${navOpen ? "open" : ""}`} onClick={() => setNavOpen(false)}>
           {NAV.map((it) => (

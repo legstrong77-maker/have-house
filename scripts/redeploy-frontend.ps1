@@ -53,7 +53,8 @@ try {
     Copy-Item "public\_redirects" "dist\_redirects" -Force
 
     Write-Host "→ 部署到 Cloudflare Pages..." -ForegroundColor Cyan
-    wrangler pages deploy dist --project-name=have-house --branch=main --commit-dirty=true
+    $stamp = Get-Date -Format "yyyy-MM-dd HH:mm"
+    wrangler pages deploy dist --project-name=have-house --branch=main --commit-message="redeploy $stamp"
     if ($LASTEXITCODE -ne 0) { throw "wrangler 部署失敗" }
 
     Write-Host ""
